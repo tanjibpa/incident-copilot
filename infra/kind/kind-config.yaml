@@ -1,0 +1,21 @@
+# Local cluster for the Incident Copilot target system (Phase 1).
+# One control plane + two workers so Chaos Mesh scenarios can target
+# individual nodes (node-level stress, partitions) without taking out
+# the API server.
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: pager
+nodes:
+  - role: control-plane
+    # Pin the node image by digest (kind v0.33.0 release notes).
+    image: kindest/node:v1.37.0@sha256:a1ed56cfb0e7b93589bdf97c8cd566405a265939e3620fc4f5de89adff580ae5
+    extraPortMappings:
+      # OTel Demo frontend-proxy exposed as NodePort 30080 -> http://localhost:8080
+      - containerPort: 30080
+        hostPort: 8080
+        listenAddress: "127.0.0.1"
+        protocol: TCP
+  - role: worker
+    image: kindest/node:v1.37.0@sha256:a1ed56cfb0e7b93589bdf97c8cd566405a265939e3620fc4f5de89adff580ae5
+  - role: worker
+    image: kindest/node:v1.37.0@sha256:a1ed56cfb0e7b93589bdf97c8cd566405a265939e3620fc4f5de89adff580ae5
