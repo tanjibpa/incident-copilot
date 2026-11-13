@@ -1,0 +1,17 @@
+# grafana-community/tempo: traces backend, single binary with local storage.
+# Receives OTLP traces from the demo collector on 4317 (gRPC).
+tempo:
+  retention: 72h
+  reportingEnabled: false
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: "0.0.0.0:4317"
+        http:
+          endpoint: "0.0.0.0:4318"
+  resources:
+    limits:
+      memory: 1Gi
+persistence:
+  enabled: false
