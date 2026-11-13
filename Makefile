@@ -1,7 +1,15 @@
-.PHONY: up-local down-local
+.PHONY: up-local down-local cluster-up demo-up demo-down
 
-up-local: ## Create the local kind cluster (more of the stack lands here during Phase 1)
+up-local: cluster-up demo-up ## Create the kind cluster and install the OTel Demo
+
+down-local: ## Delete the local kind cluster (and everything in it)
+	./infra/kind/down.sh
+
+cluster-up: ## Create the local kind cluster
 	./infra/kind/up.sh
 
-down-local: ## Delete the local kind cluster
-	./infra/kind/down.sh
+demo-up: ## Install the OpenTelemetry Demo into the cluster
+	./infra/otel-demo/install.sh
+
+demo-down: ## Uninstall the OpenTelemetry Demo, keep the cluster
+	./infra/otel-demo/uninstall.sh

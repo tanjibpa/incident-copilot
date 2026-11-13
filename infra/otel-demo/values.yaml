@@ -1,0 +1,20 @@
+# Overrides for the open-telemetry/opentelemetry-demo chart (version pinned in install.sh).
+# Bundled backends (Jaeger, Prometheus, OpenSearch, Grafana) stay on for now;
+# a later Phase 1 PR replaces them with our own Prometheus, Loki and Tempo.
+
+components:
+  frontend-proxy:
+    # NodePort 30080 is mapped to 127.0.0.1:8080 by infra/kind/kind-config.yaml,
+    # so the shop, Grafana (/grafana), Jaeger (/jaeger/ui), the load generator
+    # (/loadgen) and the flagd UI (/feature) are reachable without port-forward.
+    service:
+      type: NodePort
+      nodePort: 30080
+
+  ad:
+    # The Java agent pushes startup memory past the 300Mi default on this setup
+    # (OOMKilled 4x on first install). Spurious restarts would pollute the
+    # baseline that chaos scenarios are measured against.
+    resources:
+      limits:
+        memory: 500Mi
