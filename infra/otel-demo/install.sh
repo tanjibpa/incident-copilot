@@ -25,4 +25,4 @@ fi
 echo "waiting for deployments in $NAMESPACE..."
 kubectl --context "$CONTEXT" -n "$NAMESPACE" wait deployment --all --for=condition=Available --timeout=600s
 echo "shop:    http://localhost:8080"
-echo "grafana: http://localhost:8080/grafana   jaeger: http://localhost:8080/jaeger/ui"
+echo "telemetry: see infra/observability/README.md (Grafana via port-forward)"
