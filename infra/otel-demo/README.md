@@ -49,6 +49,8 @@ The chart doesn't support upgrades across versions. To change `CHART_VERSION`, r
 
 Grafana, Prometheus, Loki and Tempo are in the `observability` namespace (see [`../observability`](../observability)).
 
+`/grafana` and `/jaeger/ui` still exist on `localhost:8080` because frontend-proxy's routes are hard-coded in the demo image. Their bundled backends are off, so both return 503. Use Grafana on port 3000 via port-forward instead.
+
 ## Resources
 
 The docs ask for about 6 GB of free RAM. On the reference machine (16 cores, 30 GB), the cluster, the demo and the observability stack use about 16 GB in total.
