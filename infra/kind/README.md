@@ -37,7 +37,7 @@ From the repo root:
 
 ```bash
 make cluster-up     # create the cluster only (idempotent)
-make up-local       # create the cluster and install the OTel Demo
+make up-local       # create the cluster, install the observability stack, then the OTel Demo
 make down-local     # delete the cluster and everything in it
 ```
 

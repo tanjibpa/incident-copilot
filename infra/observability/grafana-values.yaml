@@ -1,0 +1,43 @@
+# grafana-community/grafana: UI over our own backends. Anonymous admin is
+# acceptable because it is only reachable on the cluster network (port-forward).
+grafana.ini:
+  auth:
+    disable_login_form: true
+  auth.anonymous:
+    enabled: true
+    org_role: Admin
+  analytics:
+    reporting_enabled: false
+    check_for_updates: false
+testFramework:
+  enabled: false
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        uid: prometheus
+        type: prometheus
+        url: http://prometheus.observability.svc:9090
+        isDefault: true
+        jsonData:
+          exemplarTraceIdDestinations:
+            - name: trace_id
+              datasourceUid: tempo
+      - name: Loki
+        uid: loki
+        type: loki
+        url: http://loki.observability.svc:3100
+      - name: Tempo
+        uid: tempo
+        type: tempo
+        url: http://tempo.observability.svc:3200
+        jsonData:
+          tracesToLogsV2:
+            datasourceUid: loki
+            filterByTraceID: true
+          serviceMap:
+            datasourceUid: prometheus
+resources:
+  limits:
+    memory: 512Mi

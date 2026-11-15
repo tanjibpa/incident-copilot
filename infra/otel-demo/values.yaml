@@ -1,12 +1,59 @@
 # Overrides for the open-telemetry/opentelemetry-demo chart (version pinned in install.sh).
-# Bundled backends (Jaeger, Prometheus, OpenSearch, Grafana) stay on for now;
-# a later Phase 1 PR replaces them with our own Prometheus, Loki and Tempo.
+# Telemetry goes to our own backends in the observability namespace
+# (infra/observability), not the demo's bundled subcharts. See docs/adr/0001.
+
+# Bundled backends off.
+jaeger:
+  enabled: false
+prometheus:
+  enabled: false
+opensearch:
+  enabled: false
+grafana:
+  enabled: false
+
+opentelemetry-collector:
+  config:
+    receivers:
+      kubeletstats:
+        # kind's kubelet serving certs have no IP SANs, so TLS verification
+        # fails and pod/container resource metrics never arrive. Local only.
+        insecure_skip_verify: true
+    exporters:
+      # The chart's otlp_grpc/jaeger and opensearch exporters stay defined but
+      # unused: they are dropped from the pipelines below, so they never start.
+      # (null does not reliably delete subchart defaults in Helm.)
+      otlp_http/prometheus:
+        endpoint: http://prometheus.observability.svc:9090/api/v1/otlp
+        tls:
+          insecure: true
+        sending_queue:
+          batch: {}
+      otlp_grpc/tempo:
+        endpoint: tempo.observability.svc:4317
+        tls:
+          insecure: true
+        sending_queue:
+          batch: {}
+      otlp_http/loki:
+        endpoint: http://loki.observability.svc:3100/otlp
+        tls:
+          insecure: true
+        sending_queue:
+          batch: {}
+    service:
+      pipelines:
+        traces:
+          exporters: [otlp_grpc/tempo, debug, span_metrics]
+        logs:
+          exporters: [otlp_http/loki, debug]
 
 components:
   frontend-proxy:
     # NodePort 30080 is mapped to 127.0.0.1:8080 by infra/kind/kind-config.yaml,
-    # so the shop, Grafana (/grafana), Jaeger (/jaeger/ui), the load generator
-    # (/loadgen) and the flagd UI (/feature) are reachable without port-forward.
+    # so the shop, the load generator (/loadgen) and the flagd UI (/feature)
+    # are reachable without port-forward. Grafana now lives in the
+    # observability namespace (see infra/observability/README.md).
     service:
       type: NodePort
       nodePort: 30080
@@ -15,6 +62,13 @@ components:
     # The Java agent pushes startup memory past the 300Mi default on this setup
     # (OOMKilled 4x on first install). Spurious restarts would pollute the
     # baseline that chaos scenarios are measured against.
+    resources:
+      limits:
+        memory: 500Mi
+
+  fraud-detection:
+    # Same JVM + Java agent issue as ad: at the 300Mi default it was
+    # OOMKilled 265 times over two days of idle load.
     resources:
       limits:
         memory: 500Mi
